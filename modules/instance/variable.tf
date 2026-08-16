@@ -20,3 +20,8 @@ variable "project_name" {
   type        = string
   default     = "netflixclone"
 }
+variable "root_volume_size" {
+  description = "Size of the root volume in GB"
+  type        = number
+  default     = 30
+}

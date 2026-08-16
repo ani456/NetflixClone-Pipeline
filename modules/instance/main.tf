@@ -30,7 +30,7 @@ data "aws_ami" "ubuntu" {
 }
 
 # Security group allowing SSH access 
-resource "aws_security_group" "this" {              ##this is just name to reference the resource in the module, not the actual name of the security group##0
+resource "aws_security_group" "this" { ##this is just name to reference the resource in the module, not the actual name of the security group##0
   name        = "${var.project_name}-sg"
   description = "Allow SSH inbound traffic"
   vpc_id      = data.aws_vpc.default.id
@@ -42,7 +42,13 @@ resource "aws_security_group" "this" {              ##this is just name to refer
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # Restrict this to your IP in production
   }
-
+  ingress {
+    description = "Jenkins UI"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # restrict to your IP in production
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -62,6 +68,17 @@ resource "aws_instance" "this" {
   subnet_id              = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.this.id]
   key_name               = var.key_name
+
+  user_data = file("${path.module}/jenkins-install.sh")
+  ##path.module always points to wherever the .tf file containing that expression physically lives.
+
+  root_block_device {
+    volume_size           = var.root_volume_size
+    volume_type           = "gp3"
+    delete_on_termination = true
+  }
+
+
 
   tags = {
     Name = var.instance_name
