@@ -39,3 +39,6 @@ create prometheus system user, as we don't want pormetheus running as root
 - sudo mv prometheus promtool /usr/local/bin/
 - sudo mv prometheus.yml /etc/prometheus/prometheus.yml
 - sudo mv consoles/ console_libraries/ /etc/prometheus/
+- sudo chown -R prometheus:prometheus /etc/prometheus /data
+
+## Configure Prometheus as a Service(Systemd)
