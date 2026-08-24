@@ -6,7 +6,7 @@
 
 -Install docker from official docs step by step
 
--add jenkins user to docker group and refresh with newgrp docker
+-add jenkins user to docker group and refresh with - newgrp docker
 
 -create persistent volumes for sonarqube data, logs ,extensions.
 docker volume inspect sonarqube_data
@@ -23,7 +23,14 @@ docker run -d \
  -v sonarqube_logs:/opt/sonarqube/logs \
  sonarqube:lts-community
 
-##Trivy installation
+## Trivy installation
+
+- sudo apt-get install wget gnupg
+- wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+
+- sudo apt-get update
+- sudo apt-get install trivy
 
 ## Install prometheus
 
@@ -42,3 +49,24 @@ create prometheus system user, as we don't want pormetheus running as root
 - sudo chown -R prometheus:prometheus /etc/prometheus /data
 
 ## Configure Prometheus as a Service(Systemd)
+
+##Create a systemd service (so it runs as a proper daemon, survives reboot)
+
+- [Unit]
+  Description=Prometheus Monitoring System
+  Wants=network-online.target
+  After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+
+ExecStart=/usr/local/bin/prometheus \
+ --config.file=/etc/prometheus/prometheus.yml \
+ --storage.tsdb.path=/data
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
