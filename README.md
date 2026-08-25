@@ -70,3 +70,10 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+
+# View Prometheus logs with - journalctl -u prometheus -f --no-pager
+
+## Installing Node Exporter
+
+- Create a node exporter user
+  sudo useradd --system --no-create-home --shell /bin/false node_exporter ##created system user with no home directory and shell access
