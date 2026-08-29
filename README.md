@@ -32,6 +32,8 @@ docker run -d \
 - sudo apt-get update
 - sudo apt-get install trivy
 
+##### Use a new vm for this
+
 ## Install prometheus
 
 create prometheus system user, as we don't want pormetheus running as root
@@ -77,3 +79,4 @@ WantedBy=multi-user.target
 
 - Create a node exporter user
   sudo useradd --system --no-create-home --shell /bin/false node_exporter ##created system user with no home directory and shell access
+-
