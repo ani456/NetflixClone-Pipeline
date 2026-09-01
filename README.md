@@ -59,6 +59,9 @@ create prometheus system user, as we don't want pormetheus running as root
   Wants=network-online.target
   After=network-online.target
 
+  StartLimitIntervalSec=500
+  StartLimitBurst=5
+
 [Service]
 User=prometheus
 Group=prometheus
@@ -66,9 +69,14 @@ Type=simple
 
 ExecStart=/usr/local/bin/prometheus \
  --config.file=/etc/prometheus/prometheus.yml \
- --storage.tsdb.path=/data
+ --storage.tsdb.path=/data \
+ --web.console.templates=/etc/prometheus/consoles \
+ --web.console.libraries=/etc/prometheus/consoles_libraries \
+ --web.listen-address=0.0.0.0:9090 \
+ --web.enable-lifecycle
 
 Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -79,4 +87,39 @@ WantedBy=multi-user.target
 
 - Create a node exporter user
   sudo useradd --system --no-create-home --shell /bin/false node_exporter ##created system user with no home directory and shell access
--
+
+- wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+- tar xvfz node_exporter-\*.tar.gz
+- sudo mv node_exporter-1.5.0.linux-amd64/node_exporter /usr/local/bin
+
+## Configure Node_exporter as a Service(Systemd)
+
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/node_exporter \
+ --collector.logind
+
+[Install]
+WantedBy=multi-user.target
+
+- sudo systemctl daemon-reload
+- sudo systemctl start node_exporter
+- sudo systemctl status node_exporter
+- sudo vim /etc/prometheus/prometheus.yml
+
+  add : - job_name: "node_exporter"
+  static_configs: - targets: ["18.217.69.94:9100"]
+
+- promtool check config /etc/prometheus/prometheus.yml
